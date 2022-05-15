@@ -13,28 +13,25 @@ import javax.crypto.spec.IvParameterSpec;
 public class Encryption {
 
     /*Method takes in a secret key and a cipher message, returns encrypted */
-    private static String symmetricEncrypt(Key key, String text, IvParameterSpec ivSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException{
+    private static byte[] symmetricEncrypt(Key key, String text, IvParameterSpec ivSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException{
 
         //get IV
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         //encryption
         cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
         byte[] encryptedOutput = cipher.doFinal(text.getBytes());
-        String result = new String(encryptedOutput);
-        return result;
+        return encryptedOutput;
         
     }
 
 
     /*Method takes in a secret key and a cipher message, returns decrypted */
-    private static String symmetricDecrypt(Key key, String text,IvParameterSpec ivSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException{
-
+    private static String symmetricDecrypt(Key key, byte[] text,IvParameterSpec ivSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException{
         //get IV
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         //Decrypt
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
-        byte[] encryptedOutput = cipher.update(text.getBytes(),0,text.length()); //seems like it moves with block size of 16, so leaves some text
-       //byte[] encryptedOutput = cipher.doFinal(text.getBytes());
+        byte[] encryptedOutput = cipher.doFinal(text);
         String result = new String(encryptedOutput);
         return result;
         
@@ -49,8 +46,7 @@ public class Encryption {
         SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
         secureRandom.nextBytes(random);
         IvParameterSpec ivSpec = new IvParameterSpec(random);
-        String c = symmetricEncrypt(key, "My name is Mukundi and i love swimming",ivSpec);
-        System.out.println(c);
+        byte[] c = symmetricEncrypt(key, "My name is Mukundi and i love swimming",ivSpec);
         System.out.println(symmetricDecrypt(key, c,ivSpec));
     }
 
