@@ -5,6 +5,8 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 
 import javax.crypto.*;
@@ -37,17 +39,31 @@ public class Encryption {
         
     }
 
+    private static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+        byte[] textByte = text.getBytes();
+        //encrypt
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, key); //private key
+        byte[] encryptedText = cipher.doFinal(textByte);
+        return encryptedText;
+    }
+
+    private static String asymmetricDecrypt(byte[] text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+        //dencrypt
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.DECRYPT_MODE, key); //public key
+        byte[] encryptedText = cipher.doFinal(text);
+        String result = new String(encryptedText);
+        return result;
+    }
+
     public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException{
-        KeyGenerator generator = KeyGenerator.getInstance("AES");
-        // specify we want a key length of 192 bits, allowed for AES
-        generator.init(128);
-        Key key = generator.generateKey();
-        byte[] random = new byte[16];
-        SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
-        secureRandom.nextBytes(random);
-        IvParameterSpec ivSpec = new IvParameterSpec(random);
-        byte[] c = symmetricEncrypt(key, "My name is Mukundi and i love swimming",ivSpec);
-        System.out.println(symmetricDecrypt(key, c,ivSpec));
+        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA");
+        kpGen.initialize(1024);
+        KeyPair keyPair = kpGen.generateKeyPair();
+
+        byte[] textCipher = asymmetricEncrypt("My name is Mukundi chitamba",keyPair.getPrivate());
+        System.out.println(asymmetricDecrypt(textCipher, keyPair.getPublic()));
     }
 
 
