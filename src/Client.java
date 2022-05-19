@@ -58,10 +58,13 @@ public class Client {
             System.out.println("Client ID can't contain '%' or '^'. Try again.");
             System.exit(1);
         }
+        RSA keyPair = new RSA();
+        System.out.println(keyPair.getPrivate());
+        System.out.println(keyPair.getPublic());
 
         // Fire up GUI
         gui = new GUI(id, hostname, port);
-
+        
         requestJoin(hostname, port, id);
     }
 
@@ -170,6 +173,8 @@ public class Client {
                 System.out.println("This is the checksum: " + checkSum);
                 String header = otherClientID + "^" + checkDigit + "^" + checkSum + "^" + thisID;
                 System.out.println("This is the header" + header);
+                // Encryption of msgString
+                
                 buf = (header + "%" + msgString).getBytes();
                 message = new DatagramPacket(buf, buf.length, address, newPort + 1);
                 confirm(message, 0);

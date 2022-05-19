@@ -48,6 +48,13 @@ public RSA() {
         return Base64.getDecoder().decode(data);
     }   
 
+    public PrivateKey getPrivate(){
+        return privateKey;
+    }
+    public PublicKey getPublic(){
+        return publicKey;
+    }
+    /*
     public static void main(String[] args) {
         RSA rsa = new RSA();
         try{
@@ -57,4 +64,5 @@ public RSA() {
         System.err.println("Decrypted:\n"+decryptedMessage);
                 }catch (Exception ingored){}
             }
+    */
 }
