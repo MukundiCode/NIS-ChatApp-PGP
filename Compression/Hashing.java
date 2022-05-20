@@ -7,6 +7,7 @@ public class Hashing {
     public static String computeHash(String message) throws NoSuchAlgorithmException, UnsupportedEncodingException{
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] encodedhash = digest.digest(message.getBytes("UTF-8"));
+        Encr
         //sign the hash with addSignature from Encryption.java this compute hash should receive a key as a argument
         String output = hexStringConverter(encodedhash);
         return output;
