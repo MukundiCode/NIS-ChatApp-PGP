@@ -34,6 +34,15 @@ public class Hashing{
         return hexString.toString();
     }
 
+    public static boolean verifyHash(String receivedHash, String receivedMessage) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException, SignatureException{
+        String computedHash = Hashing.computeHash(receivedMessage);
+        if(receivedHash.equals(computedHash)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public static void main(String[] args) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, SignatureException {
         System.out.println(computeHash("Hello how are you"));
     }

@@ -47,14 +47,7 @@ public class Compression {
         return components;
     }
 
-    public static boolean verifyHash(String receivedHash, String receivedMessage) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException, SignatureException{
-        String computedHash = Hashing.computeHash(receivedMessage);
-        if(receivedHash.equals(computedHash)){
-            return true;
-        }else{
-            return false;
-        }
-    }
+
 
     public static void main(String[] args) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException {
         String message = messageConstructor("hello my nis group assignemnet is about a pgp crtptosystem i am trying to do compression with java inflate & deflate");
@@ -65,7 +58,7 @@ public class Compression {
         String[] components = messageSplit(new String(decompressed));
         System.out.println("The hash component in hex representation: "+ components[0]);
         System.out.println("Decompressed message component: "+ components[1]);
-        if (verifyHash(components[0], components[1])){
+        if (Hashing.verifyHash(components[0], components[1])){
             System.out.println("Computed hash matches received hash");
         }
         else{
