@@ -1,10 +1,18 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.zip.*;
 
 public class Compression {
-    //TO:DO stringbuilder function for digital signed hash and generating hashes then incoporating into compression
+    public static String messageConstructor(String message) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException, SignatureException{
+        String hash = Hashing.computeHash(message);
+        String constructedString = hash+"$#$"+message;;
+        return constructedString;
+    }
 
     public static byte[] compress(String message) throws IOException{
        try {
@@ -31,12 +39,37 @@ public class Compression {
         return out.toByteArray();
     }
 
-    public static void main(String[] args) throws IOException {
-        String message = "hello my nis group assignemnet is about a pgp crtptosystem i am trying to do compression with java inflate & deflate";
+    public static String [] messageSplit(String appendedProtocolString){
+        String[] components = new String[2];
+        int i = appendedProtocolString.indexOf("$#$");
+        components[0] = appendedProtocolString.substring(0, i);
+        components[1] = appendedProtocolString.substring(i+3, appendedProtocolString.length());
+        return components;
+    }
+
+    public static boolean verifyHash(String receivedHash, String receivedMessage) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException, SignatureException{
+        String computedHash = Hashing.computeHash(receivedMessage);
+        if(receivedHash.equals(computedHash)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public static void main(String[] args) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException {
+        String message = messageConstructor("hello my nis group assignemnet is about a pgp crtptosystem i am trying to do compression with java inflate & deflate");
         byte [] compressed = compress(message);
         System.out.println("Compressed message byte length: "+compressed.length);
         byte [] decompressed = decompress(compressed);
         System.out.println(Arrays.equals(message.getBytes(), decompressed));
+        String[] components = messageSplit(new String(decompressed));
+        System.out.println("The hash component in hex representation: "+ components[0]);
+        System.out.println("Decompressed message component: "+ components[1]);
+        if (verifyHash(components[0], components[1])){
+            System.out.println("Computed hash matches received hash");
+        }
+        else{
+            System.out.println("Computed hash does not match received hash");
+        }
     }
-    
 }

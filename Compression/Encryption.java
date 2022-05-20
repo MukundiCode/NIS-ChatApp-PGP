@@ -62,7 +62,7 @@ public class Encryption {
     }
 
     //Takes in a byte array of the message, and the private key to sign with 
-    private static byte[] addSignature(byte [] text, Key key) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException{
+    protected static byte[] addSignature(byte [] text, Key key) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException{
         Signature sign = Signature.getInstance("SHA256withDSA");
         sign.initSign((PrivateKey)key);
         sign.update(text);
