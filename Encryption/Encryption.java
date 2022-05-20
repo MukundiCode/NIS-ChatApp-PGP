@@ -41,7 +41,7 @@ public class Encryption {
         
     }
 
-    /*Method takes in a string to encrypt and a private key */
+    /*Method takes in a string to encrypt with a public key */
     private static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
         byte[] textByte = text.getBytes();
         //encrypt
@@ -51,7 +51,7 @@ public class Encryption {
         return encryptedText;
     }
 
-    /*Method takes in a byte array to decrypt and a public key */
+    /*Method takes in a byte array to decrypt with a private key */
     private static String asymmetricDecrypt(byte[] text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
         //dencrypt
         Cipher cipher = Cipher.getInstance("RSA");
