@@ -114,7 +114,7 @@ public class Server {
 
             } else {
 
-                hashTable.put(clientID, new ClientInfo(newPort, clientAddress));
+                hashTable.put(clientID, new ClientInfo(newPort, clientAddress)); //add public key here
                 reconnecting.put(clientID, true);
 
                 System.out.println("Added to hashTable, now the size is: " + hashTable.size());

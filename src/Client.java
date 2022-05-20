@@ -93,7 +93,7 @@ public class Client {
 
                 // Send request to server for port for ClientListenerThread
                 address = InetAddress.getByName(hostname);
-
+                //create key pair here
                 DatagramPacket request = new DatagramPacket(id.getBytes(), id.length(), address, port);
 
                 if (!lossMode)
