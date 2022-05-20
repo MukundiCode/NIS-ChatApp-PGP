@@ -5,8 +5,21 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
+/**
+ * Hashing class currently using sha-256
+ * https://www.baeldung.com/sha-256-hashing-java - Aided in the hex represenation of the SHA-256 byte array
+ */
 public class Hashing{
 
+    /**
+     * Compute hash uses java message digest need to add the signing of the hash component- will do when we integrate everything
+     * @param message client message used for computing hash
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
+     * @throws InvalidKeyException
+     * @throws SignatureException
+     */
     public static String computeHash(String message) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, SignatureException{
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] encodedhash = digest.digest(message.getBytes("UTF-8"));
@@ -22,6 +35,11 @@ public class Hashing{
         return output;
     }
 
+    /**
+     * Generate Hex representation from the bytecode array hash
+     * @param digestHash jaav message digest bytecode hash
+     * @return
+     */
     public static String hexStringConverter(byte[] digestHash){
         StringBuilder hexString = new StringBuilder(2 * digestHash.length);
         for (int i = 0; i < digestHash.length; i++) {
@@ -34,6 +52,18 @@ public class Hashing{
         return hexString.toString();
     }
 
+    /**
+     * Method used to compare received hash with the computed hash
+     * True - hashes match
+     * False - hashes do not match
+     * @param receivedHash hash contained in the message
+     * @param receivedMessage message received hash will be computed using it as input
+     * @return bool true or false
+     * @throws InvalidKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
+     * @throws SignatureException
+     */
     public static boolean verifyHash(String receivedHash, String receivedMessage) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException, SignatureException{
         String computedHash = Hashing.computeHash(receivedMessage);
         if(receivedHash.equals(computedHash)){
@@ -41,9 +71,5 @@ public class Hashing{
         }else{
             return false;
         }
-    }
-
-    public static void main(String[] args) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, SignatureException {
-        System.out.println(computeHash("Hello how are you"));
     }
 }
