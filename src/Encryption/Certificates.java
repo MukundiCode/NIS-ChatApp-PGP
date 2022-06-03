@@ -4,7 +4,8 @@ import java.security.cert.X509Certificate;
 
 public class Certificates {
     
-    public PublicKey CAPrivateKey;
+    private PrivateKey CAPrivateKey;
+    private PublicKey CAPublicKey;
 
     public X509Certificate generateCACertificate(KeyPair keys) throws CertificateException {
         CAPrivateKey = keys.getPrivate();
