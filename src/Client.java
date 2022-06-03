@@ -4,6 +4,12 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Random;
 import java.util.zip.CRC32;
+import javax.crypto.Cipher;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Base64;
 
 
 /**
@@ -23,6 +29,7 @@ public class Client {
     static int checkDigit;
     static ClientListenerThread listener;
     static String thisID;
+    static PublicKey thisPU;
     static boolean corruptMode;
     public static boolean lossMode;
 
@@ -61,14 +68,16 @@ public class Client {
             System.out.println("Client ID can't contain '%' or '^'. Try again.");
             System.exit(1);
         }
+        // Create Private and Public Key Pairings
         RSA keyPair = new RSA();
-        System.out.println(keyPair.getPrivate());
-        System.out.println(keyPair.getPublic());
+        System.out.println("----------PRIVATE----------: "+keyPair.getPrivate());
+        System.out.println("----------PUBLIC-----------: "+keyPair.getPublic());
 
         // Fire up GUI
         gui = new GUI(id, hostname, port);
         
-        requestJoin(hostname, port, id);
+        // We should send our public key to the server for them to hold
+        requestJoin(hostname, port, id, keyPair.getPublic());
     }
 
     
@@ -79,8 +88,9 @@ public class Client {
      * @param port port number
      * @param id client ID
      */
-    public static void requestJoin(String hostname, int port, String id) {
+    public static void requestJoin(String hostname, int port, String id, PublicKey publicKey) {
         thisID = id;
+        thisPU = publicKey;
         int attempts = 0;
         while (true) {
             try {
