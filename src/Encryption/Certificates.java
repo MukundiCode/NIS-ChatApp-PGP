@@ -72,4 +72,8 @@ public class Certificates {
         return false;
         
     }
+
+    public PublicKey getClientPublicKey(X509Certificate certificate) {
+        return certificate.getPublicKey();
+    }
 }
