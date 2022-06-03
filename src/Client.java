@@ -1,7 +1,10 @@
 import java.io.*;
 import java.net.*;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Random;
 import java.util.zip.CRC32;
+
 
 /**
  * This program is adapted from www.codejava.net
@@ -93,7 +96,7 @@ public class Client {
 
                 // Send request to server for port for ClientListenerThread
                 address = InetAddress.getByName(hostname);
-                //create key pair here
+                //send pair here
                 DatagramPacket request = new DatagramPacket(id.getBytes(), id.length(), address, port);
 
                 if (!lossMode)
@@ -184,6 +187,10 @@ public class Client {
             System.out.println("Client error: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    public static void handShake(){
+        
     }
 
     
