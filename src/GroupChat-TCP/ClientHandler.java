@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
+
 /**
  * When a client connects the server spawns a thread to handle the client.
  * This way the server can handle multiple clients at the same time.

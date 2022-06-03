@@ -87,6 +87,7 @@ public class Encryption {
         KeyPairGenerator kpGen = KeyPairGenerator.getInstance("DSA");
         kpGen.initialize(2048);
         KeyPair keyPair = kpGen.generateKeyPair();
+        
 
         byte[] textCipher = addSignature("My name is Mukundi chitamba".getBytes(),keyPair.getPrivate());
         System.out.println(verifySignature(textCipher, keyPair));
