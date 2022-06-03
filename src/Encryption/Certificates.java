@@ -1,4 +1,5 @@
 import java.security.KeyPair;
+import java.security.KeyStore;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
@@ -6,6 +7,7 @@ public class Certificates {
     
     private PrivateKey CAPrivateKey;
     private PublicKey CAPublicKey;
+    public KeyStore keyStore;
 
     // generates CA certificate
     public X509Certificate generateCACertificate(KeyPair keys) throws CertificateException {
@@ -25,6 +27,7 @@ public class Certificates {
 
         X509CertificateHolder CAcertHolder = certificateBuilder.build(new JcaContentSignerBuilder("SHA1withRSA").build(keys.getPrivate()));
         X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(CAcertHolder);
+        createKeyStore(certificate);
 
         return certificate;
     }
@@ -46,6 +49,7 @@ public class Certificates {
 
         X509CertificateHolder certHolder = certificateBuilder.build(new JcaContentSignerBuilder("SHA1withRSA").build(CAPrivateKey));
         X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(certHolder);
+        storeCertificate(certificate, clientName);
 
         return certificate;
     }
@@ -83,4 +87,21 @@ public class Certificates {
         return certificate.getPublicKey();
     }
 
+    private void createKeyStore(X509Certificate certificate) {
+        File file = new File("KeyStore.pkcs12");
+        keyStore.load(null, null);
+
+        keyStore.setCertificateEntry("caRootCertificate", certificate);
+        keyStore.store(new FileOutputStream("KeyStore.pkcs12"), "123".toCharArray());
+    }
+
+
+    private void storeCertificate(X509Certificate certificate, String clientName) {
+        keyStore.setCertificateEntry(clientName, certificate);
+        keyStore.store(new FileOutputStream("KeyStore.pkcs12"), "123".toCharArray());
+    }
+
+    public PublicKey getPublicKeyFromKeyStore(String clientName){
+        keyStore.getCertificate(clientName).getClientPublicKey();
+    }
 }
