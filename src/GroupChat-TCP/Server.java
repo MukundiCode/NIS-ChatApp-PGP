@@ -1,6 +1,12 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class Server {
 
@@ -10,7 +16,7 @@ public class Server {
         this.serverSocket = serverSocket;
     }
 
-    public void startServer() {
+    public void startServer()throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         try {
             // Listen for connections, from clients, on port 100.
             while (!serverSocket.isClosed()) {
@@ -41,7 +47,13 @@ public class Server {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(100);
         Server server = new Server(serverSocket);
-        server.startServer();
+        try {
+            server.startServer();
+        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
+                | BadPaddingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
 }

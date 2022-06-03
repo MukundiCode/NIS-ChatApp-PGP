@@ -1,6 +1,14 @@
 import java.io.*;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 // A client sends messages to the server, the server spawns a thread to communicate with the client.
 // Each communication with a client is added to an array list so any message sent gets sent to every other client
@@ -13,6 +21,7 @@ public class Client {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
+    public RSA keyPair;
 
     public Client(Socket socket, String username) {
         try {
@@ -20,31 +29,59 @@ public class Client {
             this.username = username;
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter= new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            RSA keyPair = new RSA();
-            System.out.println("----------PRIVATE----------: "+keyPair.getPrivate());
-            System.out.println("----------PUBLIC-----------: "+keyPair.getPublic());
+            this.keyPair = new RSA();
+            //System.out.println("----------PRIVATE----------: "+keyPair.getPrivate());
+            //System.out.println("----------PUBLIC-----------: "+keyPair.getPublic());
         } catch (IOException e) {
             // Gracefully close everything.
             closeEverything(socket, bufferedReader, bufferedWriter);
         }
     }
 
+    private static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+        byte[] textByte = text.getBytes();
+        //encrypt
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key); //private key or public key
+        byte[] encryptedText = cipher.doFinal(textByte);
+        return encryptedText;
+    }
     // Sending a message isn't blocking and can be done without spawning a thread, unlike waiting for a message.
-    public void sendMessage() {
+    public void sendMessage()throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         try {
             // Initially send the username of the client.
-            bufferedWriter.write(username);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            //bufferedWriter.write(username);
+            //bufferedWriter.newLine();
+            //bufferedWriter.flush();
             // Create a scanner for user input.
             Scanner scanner = new Scanner(System.in);
             // While there is still a connection with the server, continue to scan the terminal and then send the message.
             while (socket.isConnected()) {
                 String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
+                String encryptedMessage = new String (asymmetricEncrypt(messageToSend, this.keyPair.getPrivate()));
+                bufferedWriter.write("SEND: " + username + " : " + encryptedMessage);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
+        } catch (IOException e) {
+            // Gracefully close everything.
+            closeEverything(socket, bufferedReader, bufferedWriter);
+        }
+    }
+
+    public void sendPublicKey() {
+        try {
+            // Initially send the username of the client.
+            bufferedWriter.write(username);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+            // They key to send
+            String k = new String( keyPair.getPublic().getEncoded());
+            System.out.println(k);            
+            
+            bufferedWriter.write("KEYU : " + username + " : " + keyPair.getPublic().toString());
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
         } catch (IOException e) {
             // Gracefully close everything.
             closeEverything(socket, bufferedReader, bufferedWriter);
@@ -96,7 +133,7 @@ public class Client {
     }
 
     // Run the program.
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
 
         // Get a username for the user and a socket connection.
         Scanner scanner = new Scanner(System.in);
@@ -108,6 +145,7 @@ public class Client {
         // Pass the socket and give the client a username.
         Client client = new Client(socket, username);
         // Infinite loop to read and send messages.
+        client.sendPublicKey();
         client.listenForMessage();
         client.sendMessage();
     }
