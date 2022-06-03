@@ -7,8 +7,10 @@ public class Certificates {
     private PrivateKey CAPrivateKey;
     private PublicKey CAPublicKey;
 
+    // generates CA certificate
     public X509Certificate generateCACertificate(KeyPair keys) throws CertificateException {
         CAPrivateKey = keys.getPrivate();
+        CAPublicKey = keys.getPublic();
         Calendar certExpireDate = Calendar.getInstance();
         certExpireDate.add(Calendar.YEAR, 1);
 
@@ -27,6 +29,7 @@ public class Certificates {
         return certificate;
     }
 
+    // generate client certificate & sign it with CA private key
     public X509Certificate generateClientCertificate(PublicKey clientKey, String clientName) throws CertificateException {
 
         Calendar certExpireDate = Calendar.getInstance();
@@ -59,6 +62,7 @@ public class Certificates {
         return (X509Certificate) cf.generateCertificate(stream);
     }
 
+    // validates client certificate with CA to determine if public key belongs to client
     public boolean validateCertificate(X509Certificate certificate, PublicKey CAPublicKey){
         
         try {
@@ -74,7 +78,9 @@ public class Certificates {
         
     }
 
+    // extract client public key from certificate
     public PublicKey getClientPublicKey(X509Certificate certificate) {
         return certificate.getPublicKey();
     }
+
 }
