@@ -32,11 +32,11 @@ public class Certificates {
         certExpireDate.add(Calendar.YEAR, 1);
 
         X509v3CertificateBuilder certificateBuilder = new X509v3CertificateBuilder(
-                new X500Name("CN="+name),
+                new X500Name("CN="+clientName),
                 BigInteger.ONE,
                 new Date(),
                 certExpireDate.getTime(),
-                new X500Name("CN="+name),
+                new X500Name("CN="+clientName),
                 SubjectPublicKeyInfo.getInstance(keys.getPublic().getEncoded())
         );
 
