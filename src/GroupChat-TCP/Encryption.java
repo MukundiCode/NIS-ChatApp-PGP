@@ -42,7 +42,7 @@ public class Encryption {
     }
 
     /*Method takes in a string to encrypt and a private key */
-    private static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+    public static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
         byte[] textByte = text.getBytes();
         //encrypt
         Cipher cipher = Cipher.getInstance("RSA");

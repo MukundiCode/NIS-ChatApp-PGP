@@ -22,8 +22,8 @@ public class Compression {
      * @throws SignatureException
      */
     public static String messageConstructor(String message) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException, SignatureException{
-        String hash = Hashing.computeHash(message);
-        String constructedString = hash+"$#$"+message;;
+        //String hash = Hashing.computeHash(message);
+        String constructedString = "$#$"+message;;
         return constructedString;
     }
 
@@ -90,19 +90,20 @@ public class Compression {
      * @throws SignatureException
      */
     public static void main(String[] args) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException {
-        String message = messageConstructor("hello my nis group assignemnet is about a pgp crtptosystem i am trying to do compression with java inflate & deflate");
-        byte [] compressed = compress(message);
-        System.out.println("Compressed message byte length: "+compressed.length);
-        byte [] decompressed = decompress(compressed);
-        System.out.println(Arrays.equals(message.getBytes(), decompressed));
-        String[] components = messageSplit(new String(decompressed));
-        System.out.println("The hash component in hex representation: "+ components[0]);
-        System.out.println("Decompressed message component: "+ components[1]);
-        if (Hashing.verifyHash(components[0], components[1])){
-            System.out.println("Computed hash matches received hash");
-        }
-        else{
-            System.out.println("Computed hash does not match received hash");
-        }
+        System.out.println("hello world");
+        //String message = messageConstructor("hello my nis group assignemnet is about a pgp crtptosystem i am trying to do compression with java inflate & deflate");
+        // byte [] compressed = compress(message);
+        // System.out.println("Compressed message byte length: "+compressed.length);
+        // byte [] decompressed = decompress(compressed);
+        // System.out.println(Arrays.equals(message.getBytes(), decompressed));
+        // String[] components = messageSplit(new String(decompressed));
+        // System.out.println("The hash component in hex representation: "+ components[0]);
+        // System.out.println("Decompressed message component: "+ components[1]);
+        // if (Hashing.verifyHash(components[0], components[1])){
+        //     System.out.println("Computed hash matches received hash");
+        // }
+        // else{
+        //     System.out.println("Computed hash does not match received hash");
+        // }
     }
 }

@@ -20,7 +20,7 @@ public class Hashing{
      * @throws InvalidKeyException
      * @throws SignatureException
      */
-    public static String computeHash(String message) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, SignatureException{
+    public static byte[] computeHash(String message) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, SignatureException{
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] encodedhash = digest.digest(message.getBytes("UTF-8"));
         
@@ -31,8 +31,7 @@ public class Hashing{
         The method header would change to String computeHash(String message,Key signKey) line 19 would be the code used to sign the hash
         byte [] signedHash = Encryption.addSignature(encodedhash, signKey);
         */
-        String output = hexStringConverter(encodedhash);
-        return output;
+        return encodedhash;
     }
 
     /**
@@ -65,11 +64,12 @@ public class Hashing{
      * @throws SignatureException
      */
     public static boolean verifyHash(String receivedHash, String receivedMessage) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException, SignatureException{
-        String computedHash = Hashing.computeHash(receivedMessage);
-        if(receivedHash.equals(computedHash)){
-            return true;
-        }else{
-            return false;
-        }
+        // String computedHash = Hashing.computeHash(receivedMessage);
+        // if(receivedHash.equals(computedHash)){
+        //     return true;
+        // }else{
+        //     return false;
+        // }
+        return false;
     }
 }
