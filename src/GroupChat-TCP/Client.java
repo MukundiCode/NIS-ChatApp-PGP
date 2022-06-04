@@ -1,6 +1,14 @@
 import java.io.*;
 import java.net.Socket;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Scanner;
+
+import org.bouncycastle.operator.OperatorCreationException;
 
 // A client sends messages to the server, the server spawns a thread to communicate with the client.
 // Each communication with a client is added to an array list so any message sent gets sent to every other client
@@ -18,7 +26,7 @@ public class Client {
     private X509Certificate certificate;
     private PublicKey CAPublicKey;
 
-    public Client(Socket socket, String username) {
+    public Client(Socket socket, String username) throws CertificateException, OperatorCreationException, KeyStoreException, NoSuchAlgorithmException {
         try {
             this.socket = socket;
             this.username = username;
@@ -28,7 +36,7 @@ public class Client {
             privateKey = keyPair.getPrivate();
             publicKey = keyPair.getPublic();
             certificate = Certificates.generateClientCertificate(publicKey, username);
-            CAPublicKey = Certificates.getClientPublicKey("caRootCertificate");
+            CAPublicKey = Certificates.getPublicKeyFromKeyStore("caRootCertificate");
             System.out.println("----------PRIVATE----------: "+keyPair.getPrivate());
             System.out.println("----------PUBLIC-----------: "+keyPair.getPublic());
         } catch (IOException e) {
@@ -104,7 +112,7 @@ public class Client {
     }
 
     // Run the program.
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, CertificateException, OperatorCreationException, KeyStoreException, NoSuchAlgorithmException {
 
         // Get a username for the user and a socket connection.
         Scanner scanner = new Scanner(System.in);

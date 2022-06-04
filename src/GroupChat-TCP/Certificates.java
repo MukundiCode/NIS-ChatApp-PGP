@@ -1,10 +1,13 @@
-import org.bouncycastle.*;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.security.*;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.*;
 import java.security.cert.*;
 import java.util.*;
 import java.io.*;
@@ -17,9 +20,9 @@ public class Certificates {
     public static KeyStore keyStore;
 
     // generates CA certificate
-    public static X509Certificate generateCACertificate(KeyPair keys) throws CertificateException {
-        CAPrivateKey = keys.getPrivate();
-        CAPublicKey = keys.getPublic();
+    public static X509Certificate generateCACertificate(RSA keyPair) throws CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        CAPrivateKey = keyPair.getPrivate();
+        CAPublicKey = keyPair.getPublic();
         Calendar certExpireDate = Calendar.getInstance();
         certExpireDate.add(Calendar.YEAR, 1);
 
@@ -29,10 +32,10 @@ public class Certificates {
                 new Date(),
                 certExpireDate.getTime(),
                 new X500Name("CN=CA Root Certificate"),
-                SubjectPublicKeyInfo.getInstance(keys.getPublic().getEncoded())
+                SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
         );
 
-        X509CertificateHolder CAcertHolder = certificateBuilder.build(new JcaContentSignerBuilder("SHA1withRSA").build(keys.getPrivate()));
+        X509CertificateHolder CAcertHolder = certificateBuilder.build(new JcaContentSignerBuilder("SHA1withRSA").build(keyPair.getPrivate()));
         X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(CAcertHolder);
         createKeyStore(certificate);
 
@@ -40,7 +43,7 @@ public class Certificates {
     }
 
     // generate client certificate & sign it with CA private key
-    public static X509Certificate generateClientCertificate(PublicKey clientKey, String clientName) throws CertificateException {
+    public static X509Certificate generateClientCertificate(PublicKey clientKey, String clientName) throws CertificateException, OperatorCreationException, KeyStoreException, NoSuchAlgorithmException, FileNotFoundException, IOException {
 
         Calendar certExpireDate = Calendar.getInstance();
         certExpireDate.add(Calendar.YEAR, 1);
@@ -51,7 +54,7 @@ public class Certificates {
                 new Date(),
                 certExpireDate.getTime(),
                 new X500Name("CN="+clientName),
-                SubjectPublicKeyInfo.getInstance(keys.getPublic().getEncoded())
+                SubjectPublicKeyInfo.getInstance(clientKey.getEncoded())
         );
 
         X509CertificateHolder certHolder = certificateBuilder.build(new JcaContentSignerBuilder("SHA1withRSA").build(CAPrivateKey));
@@ -61,12 +64,12 @@ public class Certificates {
         return certificate;
     }
 
-    public static byte[] convertCertToByte(X509Certificate certificate) {
+    public static byte[] convertCertToByte(X509Certificate certificate) throws CertificateEncodingException {
         return certificate.getEncoded();
 
     }
 
-    public static X509Certificate convertByteToCert(bytes[] byteCertArray) {
+    public static X509Certificate convertByteToCert(byte[] byteCertArray) throws CertificateException {
         InputStream stream = new ByteArrayInputStream(byteCertArray);
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         
@@ -89,26 +92,26 @@ public class Certificates {
         
     }
 
-    // extract client public key from certificate
-    public static PublicKey getClientPublicKey(X509Certificate certificate) {
-        return certificate.getPublicKey();
-    }
-
-    private static void createKeyStore(X509Certificate certificate) {
+    private static void createKeyStore(X509Certificate certificate) throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException {
         File file = new File("KeyStore.pkcs12");
         keyStore.load(null, null);
 
         keyStore.setCertificateEntry("caRootCertificate", certificate);
-        keyStore.store(new FileOutputStream("KeyStore.pkcs12"), "123".toCharArray());
+        keyStore.store(new FileOutputStream(file), "123".toCharArray());
     }
 
 
-    private static void storeCertificate(X509Certificate certificate, String clientName) {
+    private static void storeCertificate(X509Certificate certificate, String clientName) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
         keyStore.setCertificateEntry(clientName, certificate);
         keyStore.store(new FileOutputStream("KeyStore.pkcs12"), "123".toCharArray());
     }
 
-    public static PublicKey getPublicKeyFromKeyStore(String clientName){
-        keyStore.getCertificate(clientName).getClientPublicKey();
+    public static PublicKey getPublicKeyFromKeyStore(String clientName) throws KeyStoreException{
+        return keyStore.getCertificate(clientName).getPublicKey();
     }
+
+    public static void main(String[] args) {
+        System.out.println("compiles");
+    }
+
 }

@@ -91,7 +91,7 @@ public class Encryption {
         byte[] textCipher = addSignature("My name is Mukundi chitamba".getBytes(),keyPair.getPrivate());
         System.out.println(verifySignature(textCipher, keyPair));
 
-        println(asymmetricDecrypt)
+        //println(asymmetricDecrypt);
     }
 
 

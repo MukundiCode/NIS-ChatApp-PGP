@@ -1,9 +1,14 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+
+import org.bouncycastle.operator.OperatorCreationException;
 
 public class Server {
 
@@ -13,7 +18,7 @@ public class Server {
     private PublicKey CAPublicKey;
     private X509Certificate CACertificate;
 
-    public Server(ServerSocket serverSocket) {
+    public Server(ServerSocket serverSocket) throws CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException, IOException {
         this.serverSocket = serverSocket;
         keyPair = new RSA();
         CAPrivateKey = keyPair.getPrivate();
@@ -49,7 +54,7 @@ public class Server {
     }
 
     // Create the server socket and start the sever, accepting any requests from clients and parsing that into the clientHandler
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException {
         ServerSocket serverSocket = new ServerSocket(100);
         Server server = new Server(serverSocket);
         server.startServer();
