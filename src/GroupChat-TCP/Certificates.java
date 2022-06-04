@@ -1,16 +1,23 @@
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
+import org.bouncycastle.*;
 
+import java.security.*;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.*;
+import java.security.cert.*;
+import java.util.*;
+import java.io.*;
+
+// classes using for certificates X500Name, X509CertificateHolder, JcaX509CertificateHolder, X509v3CertificateBuilder, SubjectPublicKeyInfo, JcaContentSignerBuilder
 public class Certificates {
     
-    private PrivateKey CAPrivateKey;
-    private PublicKey CAPublicKey;
-    public KeyStore keyStore;
+    private static PrivateKey CAPrivateKey;
+    private static PublicKey CAPublicKey;
+    public static KeyStore keyStore;
 
     // generates CA certificate
-    public X509Certificate generateCACertificate(KeyPair keys) throws CertificateException {
+    public static X509Certificate generateCACertificate(KeyPair keys) throws CertificateException {
         CAPrivateKey = keys.getPrivate();
         CAPublicKey = keys.getPublic();
         Calendar certExpireDate = Calendar.getInstance();
@@ -33,7 +40,7 @@ public class Certificates {
     }
 
     // generate client certificate & sign it with CA private key
-    public X509Certificate generateClientCertificate(PublicKey clientKey, String clientName) throws CertificateException {
+    public static X509Certificate generateClientCertificate(PublicKey clientKey, String clientName) throws CertificateException {
 
         Calendar certExpireDate = Calendar.getInstance();
         certExpireDate.add(Calendar.YEAR, 1);
@@ -54,12 +61,12 @@ public class Certificates {
         return certificate;
     }
 
-    public byte[] convertCertToByte(X509Certificate certificate) {
+    public static byte[] convertCertToByte(X509Certificate certificate) {
         return certificate.getEncoded();
 
     }
 
-    public X509Certificate convertByteToCert(bytes[] byteCertArray) {
+    public static X509Certificate convertByteToCert(bytes[] byteCertArray) {
         InputStream stream = new ByteArrayInputStream(byteCertArray);
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         
@@ -67,7 +74,7 @@ public class Certificates {
     }
 
     // validates client certificate with CA to determine if public key belongs to client
-    public boolean validateCertificate(X509Certificate certificate, PublicKey CAPublicKey){
+    public static boolean validateCertificate(X509Certificate certificate, PublicKey CAPublicKey){
         
         try {
             certificate.verify(CAPublicKey);
@@ -83,11 +90,11 @@ public class Certificates {
     }
 
     // extract client public key from certificate
-    public PublicKey getClientPublicKey(X509Certificate certificate) {
+    public static PublicKey getClientPublicKey(X509Certificate certificate) {
         return certificate.getPublicKey();
     }
 
-    private void createKeyStore(X509Certificate certificate) {
+    private static void createKeyStore(X509Certificate certificate) {
         File file = new File("KeyStore.pkcs12");
         keyStore.load(null, null);
 
@@ -96,12 +103,12 @@ public class Certificates {
     }
 
 
-    private void storeCertificate(X509Certificate certificate, String clientName) {
+    private static void storeCertificate(X509Certificate certificate, String clientName) {
         keyStore.setCertificateEntry(clientName, certificate);
         keyStore.store(new FileOutputStream("KeyStore.pkcs12"), "123".toCharArray());
     }
 
-    public PublicKey getPublicKeyFromKeyStore(String clientName){
+    public static PublicKey getPublicKeyFromKeyStore(String clientName){
         keyStore.getCertificate(clientName).getClientPublicKey();
     }
 }

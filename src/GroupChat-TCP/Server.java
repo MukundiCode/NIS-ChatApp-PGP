@@ -1,13 +1,24 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 
 public class Server {
 
     private final ServerSocket serverSocket;
+    private RSA keyPair;
+    private PrivateKey CAPrivateKey;
+    private PublicKey CAPublicKey;
+    private X509Certificate CACertificate;
 
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
+        keyPair = new RSA();
+        CAPrivateKey = keyPair.getPrivate();
+        CAPublicKey = keyPair.getPublic();
+        CACertificate = Certificates.generateCACertificate(keyPair);
     }
 
     public void startServer() {
