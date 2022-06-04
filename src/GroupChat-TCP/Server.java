@@ -7,10 +7,14 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.util.ArrayList;
+
 
 public class Server {
 
     private final ServerSocket serverSocket;
+    public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
+
 
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;

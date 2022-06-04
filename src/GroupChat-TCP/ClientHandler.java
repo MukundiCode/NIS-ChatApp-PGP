@@ -16,6 +16,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.util.Iterator;
+
 
 /**
  * When a client connects the server spawns a thread to handle the client.
@@ -27,7 +29,6 @@ public class ClientHandler implements Runnable {
 
     // Array list of clientHandler objects ran as threads from Server
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
-    public static ArrayList<PublicKey> publicKeys = new ArrayList<PublicKey>();
 
     // Socket for a connection, buffer reader and writer for receiving and sending data respectively.
     private Socket socket;
@@ -101,7 +102,9 @@ public class ClientHandler implements Runnable {
             case "class sun.security.rsa.RSAPublicKeyImpl":
                 System.out.println("Public key for user saved");
                 PublicKey k = (PublicKey) message;
-                ClientHandler.publicKeys.add(k);
+                ClientInfo  c = new ClientInfo(clientUsername,k);
+                Server.clients.add(c);
+                sendClientInfo();
                 break;
             case "class java.lang.String":
                 String msg = (String) message;
@@ -115,9 +118,26 @@ public class ClientHandler implements Runnable {
                         break;
             }
                 break;
+            case "class [B":
+                System.out.println("Dcrypting bytes");
+                byte [] msgBytes = (byte[]) message;
+                //System.out.println(asymmetricDecrypt(msgBytes,ClientHandler.publicKeys.get(0)));
+                break;
         }
-        //get message command
-        
+        //get message command  
+    }
+
+    public synchronized void sendClientInfo()throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
+        if (Server.clients.size() > 2){
+        for (int i = 0;i < clientHandlers.size();i++) {
+            try {
+                    clientHandlers.get(i).objOut.writeObject(Server.clients);
+                    clientHandlers.get(i).objOut.flush();
+                } catch (IOException e) {
+                    closeEverything(socket, objInput, objOut);
+                }   
+        }
+    }
     }
 
     // If the client disconnects for any reason remove them from the list so a message isn't sent down a broken connection.

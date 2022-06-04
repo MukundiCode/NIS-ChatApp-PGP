@@ -4,7 +4,7 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
-
+import java.util.ArrayList;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -22,6 +22,7 @@ public class Client {
     private ObjectInputStream objInput;
     private String username;
     public RSA keyPair;
+    public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
 
     public Client(Socket socket, String username) {
         try {
@@ -47,11 +48,22 @@ public class Client {
                 String messageToSend = scanner.nextLine();
                 objOutput.writeObject("SEND: " + messageToSend);
                 objOutput.flush();
+                objOutput.writeObject(asymmetricEncrypt(messageToSend,keyPair.getPrivate()));
+                objOutput.flush();
             }
         } catch (IOException e) {
             // Gracefully close everything.
             closeEverything(socket, objInput, objOutput);
         }
+    }
+
+    private static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+        byte[] textByte = text.getBytes();
+        //encrypt
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, key); //private key or public key
+        byte[] encryptedText = cipher.doFinal(textByte);
+        return encryptedText;
     }
 
     public void sendPublicKey() {
@@ -78,8 +90,10 @@ public class Client {
                 while (socket.isConnected()) {
                     try {
                         // Get the messages sent from other users and print it to the console.
-                        msgFromGroupChat = (String) objInput.readObject();
-                        System.out.println(msgFromGroupChat);
+                        //msgFromGroupChat = (String) objInput.readObject();
+                        Object in = objInput.readObject();
+                        handleMessage(in);
+                        //System.out.println(msgFromGroupChat);
                     } catch (IOException | ClassNotFoundException e) {
                         // Close everything gracefully.
                         closeEverything(socket, objInput, objOutput);
@@ -87,6 +101,24 @@ public class Client {
                 }
             }
         }).start();
+    }
+
+    public void handleMessage(Object message){
+        //get message type
+        System.out.println(message.getClass());
+        switch (message.getClass().toString()){
+            case "class java.lang.String":
+                String msgFromGroupChat = (String) message;
+                System.out.println(msgFromGroupChat);
+                System.out.println();
+                break;
+            case "class java.util.ArrayList":
+                Client.clients = (ArrayList<ClientInfo>) message;
+                System.out.println("Clients list recieved with size: "+ Client.clients.size());
+                //System.out.println(asymmetricDecrypt(msgBytes,ClientHandler.publicKeys.get(0)));
+                break;
+        }
+        //get message command  
     }
 
     // Helper method to close everything so you don't have to repeat yourself.
@@ -125,6 +157,7 @@ public class Client {
         // Pass the socket and give the client a username.
         Client client = new Client(socket, username);
         // Infinite loop to read and send messages.
+        System.out.println(Client.clients.getClass());
         client.sendPublicKey();
         client.listenForMessage();
         client.sendMessage();
