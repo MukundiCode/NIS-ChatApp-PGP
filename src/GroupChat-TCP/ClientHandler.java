@@ -35,7 +35,13 @@ public class ClientHandler implements Runnable {
             this.clientUsername = bufferedReader.readLine();
             // Add the new client handler to the array so they can receive messages from others.
             clientHandlers.add(this);
+            String publicKeyTest = "This will be publicKey";
+            byte[] publicKeyBytes = publicKeyTest.getBytes();
+            ClientInfo clientInfo = new ClientInfo(publicKeyBytes);
+            Server.hashTable.put(this.clientUsername, clientInfo);
             broadcastMessage("SERVER: " + clientUsername + " has entered the chat!");
+            System.out.println("SERVER: " + clientUsername + " has public key: " + publicKeyTest);
+
         } catch (IOException e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
         }

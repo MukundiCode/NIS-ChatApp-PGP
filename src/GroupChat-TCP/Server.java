@@ -1,13 +1,26 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.*;
+import java.util.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
 
 public class Server {
 
     private final ServerSocket serverSocket;
+    public static HashMap<String, ClientInfo> hashTable = new HashMap<String, ClientInfo>();
+    private PrivateKey privateKey;
+    public static PublicKey publicKey;
 
-    public Server(ServerSocket serverSocket) {
+    public Server (ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
+        RSA keyPair = new RSA();
+        privateKey = keyPair.getPrivate();
+        publicKey = keyPair.getPublic();
     }
 
     public void startServer() {
