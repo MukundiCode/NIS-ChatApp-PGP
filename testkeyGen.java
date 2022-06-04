@@ -12,6 +12,7 @@ public class testkeyGen {
         SecretKey secretKey = KeyGenerator.getInstance("AES").generateKey();
         // get base64 encoded version of the key
         String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    
 
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
         // rebuild key using SecretKeySpec
