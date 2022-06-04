@@ -18,8 +18,8 @@ public class Client {
 
     // A client has a socket to connect to the server and a reader and writer to receive and send messages respectively.
     private Socket socket;
-    private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
+    private ObjectOutputStream objOutput;
+    private ObjectInputStream objInput;
     private String username;
     public RSA keyPair;
 
@@ -27,64 +27,44 @@ public class Client {
         try {
             this.socket = socket;
             this.username = username;
-            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.bufferedWriter= new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.objOutput = new ObjectOutputStream(socket.getOutputStream());
+            this.objInput = new ObjectInputStream(socket.getInputStream());
             this.keyPair = new RSA();
-            //System.out.println("----------PRIVATE----------: "+keyPair.getPrivate());
-            //System.out.println("----------PUBLIC-----------: "+keyPair.getPublic());
         } catch (IOException e) {
             // Gracefully close everything.
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            closeEverything(socket, objInput, objOutput);
         }
     }
 
-    private static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-        byte[] textByte = text.getBytes();
-        //encrypt
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, key); //private key or public key
-        byte[] encryptedText = cipher.doFinal(textByte);
-        return encryptedText;
-    }
     // Sending a message isn't blocking and can be done without spawning a thread, unlike waiting for a message.
     public void sendMessage()throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         try {
             // Initially send the username of the client.
-            //bufferedWriter.write(username);
-            //bufferedWriter.newLine();
-            //bufferedWriter.flush();
             // Create a scanner for user input.
             Scanner scanner = new Scanner(System.in);
             // While there is still a connection with the server, continue to scan the terminal and then send the message.
             while (socket.isConnected()) {
                 String messageToSend = scanner.nextLine();
-                String encryptedMessage = new String (asymmetricEncrypt(messageToSend, this.keyPair.getPrivate()));
-                bufferedWriter.write("SEND: " + username + " : " + encryptedMessage);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
+                objOutput.writeObject("SEND: " + messageToSend);
+                objOutput.flush();
             }
         } catch (IOException e) {
             // Gracefully close everything.
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            closeEverything(socket, objInput, objOutput);
         }
     }
 
     public void sendPublicKey() {
         try {
             // Initially send the username of the client.
-            bufferedWriter.write(username);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-            // They key to send
-            String k = new String( keyPair.getPublic().getEncoded());
-            System.out.println(k);            
-            
-            bufferedWriter.write("KEYU : " + username + " : " + keyPair.getPublic().toString());
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            objOutput.writeObject(username);
+            objOutput.flush();
+            objOutput.writeObject(keyPair.getPublic());
+            objOutput.flush();
+            System.out.println("Log: Public Key sent to server");
         } catch (IOException e) {
             // Gracefully close everything.
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            closeEverything(socket, objInput, objOutput);
         }
     }
 
@@ -98,11 +78,11 @@ public class Client {
                 while (socket.isConnected()) {
                     try {
                         // Get the messages sent from other users and print it to the console.
-                        msgFromGroupChat = bufferedReader.readLine();
+                        msgFromGroupChat = (String) objInput.readObject();
                         System.out.println(msgFromGroupChat);
-                    } catch (IOException e) {
+                    } catch (IOException | ClassNotFoundException e) {
                         // Close everything gracefully.
-                        closeEverything(socket, bufferedReader, bufferedWriter);
+                        closeEverything(socket, objInput, objOutput);
                     }
                 }
             }
@@ -110,7 +90,7 @@ public class Client {
     }
 
     // Helper method to close everything so you don't have to repeat yourself.
-    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+    public void closeEverything(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
         // Note you only need to close the outer wrapper as the underlying streams are closed when you close the wrapper.
         // Note you want to close the outermost wrapper so that everything gets flushed.
         // Note that closing a socket will also close the socket's InputStream and OutputStream.
@@ -118,11 +98,11 @@ public class Client {
         // Closing the socket will also close the socket's input stream and output stream.
         // Close the socket after closing the streams.
         try {
-            if (bufferedReader != null) {
-                bufferedReader.close();
+            if (in != null) {
+                in.close();
             }
-            if (bufferedWriter != null) {
-                bufferedWriter.close();
+            if (out != null) {
+                out.close();
             }
             if (socket != null) {
                 socket.close();
