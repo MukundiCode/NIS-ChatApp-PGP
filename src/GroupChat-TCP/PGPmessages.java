@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.Serializable;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -14,21 +15,26 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class PGPmessages {
+public class PGPmessages implements Serializable {
     private byte[] messageComponent;//message++hash attribute of the pgp message object
     private byte[] keyComponent;//session key attribute of the pgp message object
+    private String receipientUsername;
+    private String senderUsername;
 
     /**
      * The constructor used to generate a new pgp message object
      * @param messageComponent plaintext componnent
      * @param keyComponent session key component
+     * @param receipientUsername to identify where the message is going 
      */
-    public PGPmessages(byte[] messageComponent, byte [] keyComponent){
+    public PGPmessages(byte[] messageComponent, byte [] keyComponent, String receipientUserName,String senderUsername){
         this.messageComponent = messageComponent;
         this.keyComponent = keyComponent;
+        this.receipientUsername = receipientUserName;
+        this.senderUsername = senderUsername;
     }
 
-    public static PGPmessages sendMessage(String plainMessage, PrivateKey senderPrivate, PublicKey recipientPublicKey) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, SignatureException, IOException, InvalidAlgorithmParameterException {
+    public static PGPmessages sendMessage(String plainMessage,String receipientUserName,String senderUsername, PrivateKey senderPrivate, PublicKey recipientPublicKey) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, SignatureException, IOException, InvalidAlgorithmParameterException {
         byte[] messageData = plainMessage.getBytes("UTF-8");//getting the bytes of the plainMessage
         byte[] shaSignature = Encryption.signedData(messageData, senderPrivate);//generating the SHA256withRSA signed hash
         //writing the message and signed hash byte arrays to a shared byte array
@@ -49,7 +55,7 @@ public class PGPmessages {
         // System.out.println(Arrays.toString(encryptedMessage));
         // System.out.println(new String(encryptedMessage));
         byte [] encryptedSessionKey = Encryption.encryptSessionKey(recipientPublicKey, secretKey); //encrypting the session key //MOVE
-        PGPmessages pgpTransmission = new PGPmessages(encryptedMessage, encryptedSessionKey);//calling the constructor to generate the transmission
+        PGPmessages pgpTransmission = new PGPmessages(encryptedMessage, encryptedSessionKey,receipientUserName,senderUsername);//calling the constructor to generate the transmission
         //lines 62-64 can be removed
         //System.out.println(Arrays.toString(pgpTransmission.messageComponent));
         //System.out.println(Arrays.toString(pgpTransmission.keyComponent));
@@ -127,9 +133,16 @@ public class PGPmessages {
         PublicKey recipientPublicKey = recipientKeys.getPublic();
         PrivateKey recipientPrivateKey = recipientKeys.getPrivate();
         String plainMessage= "Hello nis assignment pgp component";
-        PGPmessages sentMessage =sendMessage(plainMessage, senderPrivateKey, recipientPublicKey);
+        PGPmessages sentMessage =sendMessage(plainMessage,"Mukundi","Suvanth", senderPrivateKey, recipientPublicKey);
         String result = receiveMessage(sentMessage, recipientPrivateKey, senderPublicKey);
         System.out.println(result);
+    }
+    public String getReceipientUsername(){
+        return this.receipientUsername;
+    }
+
+    public String getSenderUsername(){
+        return this.senderUsername;
     }
 
     /**

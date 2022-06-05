@@ -62,7 +62,6 @@ public class ClientHandler implements Runnable {
             try {
                 // Read what the client sent and then send it to every other client.
                 Object in = objInput.readObject();
-                //System.out.println("Message From client: " + in);
                 handleMessage(in);
             } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | ClassNotFoundException e) {
                 // Close everything gracefully.
@@ -95,12 +94,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendMessage(String messageToSend, String receipientUserName) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+    public void sendMessage(PGPmessages message) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         for (ClientHandler clientHandler : clientHandlers) {
             try {
-                if (clientHandler.clientUsername.equals(receipientUserName)) {
+                if (clientHandler.clientUsername.equals(message.getReceipientUsername())) {
                     // We want to encrypt with private and publics here.
-                    clientHandler.objOut.writeObject(messageToSend);
+                    clientHandler.objOut.writeObject(message);
                     clientHandler.objOut.flush();
                 }
             } catch (IOException e) {
@@ -133,10 +132,12 @@ public class ClientHandler implements Runnable {
                         break;
             }
                 break;
+            case "class PGPmessages":
+                sendMessage((PGPmessages)message);
+                break;
             case "class [B":
                 System.out.println("Dcrypting bytes");
                 byte [] msgBytes = (byte[]) message;
-                //System.out.println(asymmetricDecrypt(msgBytes,ClientHandler.publicKeys.get(0)));
                 break;
         }
         //get message command  
@@ -178,15 +179,5 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private static String asymmetricDecrypt(byte[] text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-        //dencrypt
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        cipher.init(Cipher.DECRYPT_MODE, key); //public key or private key
-        byte[] encryptedText = cipher.doFinal(text);
-        String result = new String(encryptedText);
-        System.out.println("Result is "+ result);
-        return result;
     }
 }

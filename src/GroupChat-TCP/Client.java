@@ -9,6 +9,12 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.security.SignatureException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.PublicKey;
+
+
+
 
 // A client sends messages to the server, the server spawns a thread to communicate with the client.
 // Each communication with a client is added to an array list so any message sent gets sent to every other client
@@ -38,7 +44,7 @@ public class Client {
     }
 
     // Sending a message isn't blocking and can be done without spawning a thread, unlike waiting for a message.
-    public void sendMessage()throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public void sendMessage()throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,SignatureException,InvalidAlgorithmParameterException {
         try {
             // Initially send the username of the client.
             // Create a scanner for user input.
@@ -46,24 +52,18 @@ public class Client {
             // While there is still a connection with the server, continue to scan the terminal and then send the message.
             while (socket.isConnected()) {
                 String messageToSend = scanner.nextLine();
-                objOutput.writeObject("SEND: " + messageToSend);
-                objOutput.flush();
-                objOutput.writeObject(asymmetricEncrypt(messageToSend,keyPair.getPrivate()));
-                objOutput.flush();
+                for (ClientInfo client : clients) {
+                    if (!client.getUsername().equals(this.username)) {
+                        PGPmessages message = PGPmessages.sendMessage(messageToSend,client.getUsername(),this.username,keyPair.getPrivate(),client.getPublicKey());
+                        objOutput.writeObject(message);
+                        objOutput.flush();
+                    }
+                }
             }
         } catch (IOException e) {
             // Gracefully close everything.
             closeEverything(socket, objInput, objOutput);
         }
-    }
-
-    private static byte[] asymmetricEncrypt(String text,Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-        byte[] textByte = text.getBytes();
-        //encrypt
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, key); //private key or public key
-        byte[] encryptedText = cipher.doFinal(textByte);
-        return encryptedText;
     }
 
     public void sendPublicKey() {
@@ -81,7 +81,7 @@ public class Client {
     }
 
     // Listening for a message is blocking so need a separate thread for that.
-    public void listenForMessage() {
+    public void listenForMessage()throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,SignatureException,InvalidAlgorithmParameterException {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -90,11 +90,9 @@ public class Client {
                 while (socket.isConnected()) {
                     try {
                         // Get the messages sent from other users and print it to the console.
-                        //msgFromGroupChat = (String) objInput.readObject();
                         Object in = objInput.readObject();
                         handleMessage(in);
-                        //System.out.println(msgFromGroupChat);
-                    } catch (IOException | ClassNotFoundException e) {
+                    } catch (IOException |NoSuchAlgorithmException |NoSuchPaddingException |InvalidKeyException |IllegalBlockSizeException |BadPaddingException |SignatureException |InvalidAlgorithmParameterException| ClassNotFoundException e) {
                         // Close everything gracefully.
                         closeEverything(socket, objInput, objOutput);
                     }
@@ -103,9 +101,8 @@ public class Client {
         }).start();
     }
 
-    public void handleMessage(Object message){
+    public void handleMessage(Object message)throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,SignatureException,InvalidAlgorithmParameterException,IOException {
         //get message type
-        System.out.println(message.getClass());
         switch (message.getClass().toString()){
             case "class java.lang.String":
                 String msgFromGroupChat = (String) message;
@@ -115,7 +112,15 @@ public class Client {
             case "class java.util.ArrayList":
                 Client.clients = (ArrayList<ClientInfo>) message;
                 System.out.println("Clients list recieved with size: "+ Client.clients.size());
-                //System.out.println(asymmetricDecrypt(msgBytes,ClientHandler.publicKeys.get(0)));
+                break;
+            case "class PGPmessages":
+                PGPmessages m = (PGPmessages) message;
+                for (ClientInfo client : clients) {
+                    if (client.getUsername() == m.getSenderUsername()){
+                        String decryptedMessage = PGPmessages.receiveMessage(m,keyPair.getPrivate(),client.getPublicKey());
+                        System.out.println(client.getUsername() +": " +decryptedMessage);
+                    }
+                }
                 break;
         }
         //get message command  
@@ -145,7 +150,7 @@ public class Client {
     }
 
     // Run the program.
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,SignatureException,InvalidAlgorithmParameterException{
 
         // Get a username for the user and a socket connection.
         Scanner scanner = new Scanner(System.in);
@@ -157,7 +162,6 @@ public class Client {
         // Pass the socket and give the client a username.
         Client client = new Client(socket, username);
         // Infinite loop to read and send messages.
-        System.out.println(Client.clients.getClass());
         client.sendPublicKey();
         client.listenForMessage();
         client.sendMessage();
