@@ -95,6 +95,21 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    public void sendMessage(String messageToSend, String receipientUserName) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+        for (ClientHandler clientHandler : clientHandlers) {
+            try {
+                if (clientHandler.clientUsername.equals(receipientUserName)) {
+                    // We want to encrypt with private and publics here.
+                    clientHandler.objOut.writeObject(messageToSend);
+                    clientHandler.objOut.flush();
+                }
+            } catch (IOException e) {
+                closeEverything(socket, objInput, objOut);
+            }
+        }
+    }
+
+
     //Take a message, and if it is a message to broadcast, broadcast, but if it is a key, store the key
     public void handleMessage(Object message) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
         //get message type
