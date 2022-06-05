@@ -18,7 +18,13 @@
             "src/GroupChat-TCP/bcprov-ext-jdk18on-171.jar",
             "src/GroupChat-TCP/bcprov-jdk18on-171.jar",
             "src/GroupChat-TCP/bctls-jdk18on-171.jar",
-            "src/GroupChat-TCP/bcutil-jdk18on-171.jar"
+            "src/GroupChat-TCP/bcutil-jdk18on-171.jar",
+            "src/GroupChat-TCP/1.jar",
+            "src/GroupChat-TCP/2.jar",
+            "src/GroupChat-TCP/3.jar",
+            "src/GroupChat-TCP/4.jar",
+            "src/GroupChat-TCP/5.jar",
+            "src/GroupChat-TCP/6.jar"
         ],
         "exclude": [
             "src/BouncyCastle/bcpg-jdk18on-171.jar"

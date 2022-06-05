@@ -21,10 +21,6 @@ public class Client {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
-    private PrivateKey privateKey;
-    private PublicKey publicKey;
-    private X509Certificate certificate;
-    private PublicKey CAPublicKey;
 
     public Client(Socket socket, String username) throws CertificateException, OperatorCreationException, KeyStoreException, NoSuchAlgorithmException {
         try {
@@ -33,10 +29,6 @@ public class Client {
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter= new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             RSA keyPair = new RSA();
-            privateKey = keyPair.getPrivate();
-            publicKey = keyPair.getPublic();
-            certificate = Certificates.generateClientCertificate(publicKey, username);
-            CAPublicKey = Certificates.getPublicKeyFromKeyStore("caRootCertificate");
             System.out.println("----------PRIVATE----------: "+keyPair.getPrivate());
             System.out.println("----------PUBLIC-----------: "+keyPair.getPublic());
         } catch (IOException e) {

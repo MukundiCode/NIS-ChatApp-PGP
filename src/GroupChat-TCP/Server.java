@@ -13,17 +13,9 @@ import org.bouncycastle.operator.OperatorCreationException;
 public class Server {
 
     private final ServerSocket serverSocket;
-    private RSA keyPair;
-    private PrivateKey CAPrivateKey;
-    private PublicKey CAPublicKey;
-    private X509Certificate CACertificate;
 
     public Server(ServerSocket serverSocket) throws CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException, IOException {
         this.serverSocket = serverSocket;
-        keyPair = new RSA();
-        CAPrivateKey = keyPair.getPrivate();
-        CAPublicKey = keyPair.getPublic();
-        CACertificate = Certificates.generateCACertificate(keyPair);
     }
 
     public void startServer() {
@@ -55,7 +47,7 @@ public class Server {
 
     // Create the server socket and start the sever, accepting any requests from clients and parsing that into the clientHandler
     public static void main(String[] args) throws IOException, CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException {
-        ServerSocket serverSocket = new ServerSocket(100);
+        ServerSocket serverSocket = new ServerSocket(1234);
         Server server = new Server(serverSocket);
         server.startServer();
     }

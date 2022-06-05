@@ -12,12 +12,10 @@ import java.security.cert.*;
 import java.util.*;
 import java.io.*;
 
-// classes using for certificates X500Name, X509CertificateHolder, JcaX509CertificateHolder, X509v3CertificateBuilder, SubjectPublicKeyInfo, JcaContentSignerBuilder
 public class Certificates {
     
     private static PrivateKey CAPrivateKey;
     private static PublicKey CAPublicKey;
-    public static KeyStore keyStore;
 
     // generates CA certificate
     public static X509Certificate generateCACertificate(RSA keyPair) throws CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException, IOException {
@@ -37,7 +35,7 @@ public class Certificates {
 
         X509CertificateHolder CAcertHolder = certificateBuilder.build(new JcaContentSignerBuilder("SHA1withRSA").build(keyPair.getPrivate()));
         X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(CAcertHolder);
-        createKeyStore(certificate);
+        //createKeyStore(certificate);
 
         return certificate;
     }
@@ -59,14 +57,13 @@ public class Certificates {
 
         X509CertificateHolder certHolder = certificateBuilder.build(new JcaContentSignerBuilder("SHA1withRSA").build(CAPrivateKey));
         X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(certHolder);
-        storeCertificate(certificate, clientName);
+        //storeCertificate(certificate, clientName);
 
         return certificate;
     }
 
     public static byte[] convertCertToByte(X509Certificate certificate) throws CertificateEncodingException {
         return certificate.getEncoded();
-
     }
 
     public static X509Certificate convertByteToCert(byte[] byteCertArray) throws CertificateException {
@@ -77,7 +74,7 @@ public class Certificates {
     }
 
     // validates client certificate with CA to determine if public key belongs to client
-    public static boolean validateCertificate(X509Certificate certificate, PublicKey CAPublicKey){
+    public static boolean validateCertificate(X509Certificate certificate){
         
         try {
             certificate.verify(CAPublicKey);
@@ -88,30 +85,37 @@ public class Certificates {
         } catch (SignatureException ex) {
             System.out.println("certificate rejected");
         }
-        return false;
-        
+        return false;  
     }
 
-    private static void createKeyStore(X509Certificate certificate) throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException {
-        File file = new File("KeyStore.pkcs12");
-        keyStore.load(null, null);
-
-        keyStore.setCertificateEntry("caRootCertificate", certificate);
-        keyStore.store(new FileOutputStream(file), "123".toCharArray());
+    public static PublicKey getPublicKeyFromCertificate(X509Certificate clientCert) {
+        return clientCert.getPublicKey();
     }
 
 
-    private static void storeCertificate(X509Certificate certificate, String clientName) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
-        keyStore.setCertificateEntry(clientName, certificate);
-        keyStore.store(new FileOutputStream("KeyStore.pkcs12"), "123".toCharArray());
-    }
-
-    public static PublicKey getPublicKeyFromKeyStore(String clientName) throws KeyStoreException{
-        return keyStore.getCertificate(clientName).getPublicKey();
-    }
-
-    public static void main(String[] args) {
-        System.out.println("compiles");
+    /*
+     * to compile Certifcates class use command: javac -cp .:1.jar:2.jar:3.jar:4.jar:5.jar:6.jar Certificates.java
+     * to run Certificates class use command: java -cp .:1.jar:2.jar:3.jar:4.jar:5.jar:6.jar Certificates
+     */
+    public static void main(String[] args) throws CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        // create and generate Server/CA key pair and root certificate
+        RSA keyPair = new RSA();
+        X509Certificate caCert = generateCACertificate(keyPair);
+        System.out.println("CA certificate: "+caCert.toString());
+        System.out.println("CA Public Key: "+caCert.getPublicKey());
+        // create and client1 key pair and signed certificate
+        RSA keyPairClient1 = new RSA();
+        X509Certificate c1Cert = generateClientCertificate(keyPairClient1.getPublic(), "client1");
+        System.out.println("Client 1 certificate: "+c1Cert.toString());
+        // create and client2 key pair and signed certificate
+        RSA keyPairClient2 = new RSA();
+        X509Certificate c2Cert = generateClientCertificate(keyPairClient2.getPublic(), "client2");
+        System.out.println("Client 2 certificate: "+c2Cert.toString());
+        // validate each client certificate with CA Public Key
+        boolean client1Validate = validateCertificate(c1Cert);
+        System.out.println("Client 1 certificate validate: "+client1Validate);
+        boolean client2Validate = validateCertificate(c2Cert);
+        System.out.println("Client 2 certificate validate: "+client2Validate);
     }
 
 }
