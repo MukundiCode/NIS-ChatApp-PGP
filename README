@@ -1,0 +1,17 @@
+open pgpFinalMethods ib terminal
+javac *.java
+java PGPmessages.java
+This runs a simple send and receive of messages
+
+What I did
+Jonos RSA class was used for public/private key gen
+Encryption class was changed to use bytes
+I wrote some of my own encryption methods, I saw i basically rewrote one of the origal methods so i just took it out
+Dropped main
+Hashing class is dropped
+
+RSA class was untouched
+
+For logging I left a bunch of comments to help the logging process. Just dont log the compression parts
+
+I can help incoporate the pgp in the chat. I only included the files that I changed in this branch.

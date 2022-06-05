@@ -7,7 +7,7 @@ import java.util.zip.*;
  * The class also has methods to split the hash and message components from the transmitted message.
  */
 public class Compression {
-        /**
+    /**
      * The compress function takes in a data byte array that will be compressed
      * @param data data to be compressed
      * @return compressed byte array
