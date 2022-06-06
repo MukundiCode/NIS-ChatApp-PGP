@@ -18,23 +18,20 @@ public class Server {
 
     private final ServerSocket serverSocket;
     public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
-<<<<<<< HEAD
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_YELLOW = "\u001B[33m";
-
-    public Server(ServerSocket serverSocket) {
-=======
     private static RSA keyPair;
     private static X509Certificate CACertificate;
     public static PublicKey CAPublicKey;
 
     public Server(ServerSocket serverSocket) throws CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException, IOException {
->>>>>>> origin/CertValidation
         this.serverSocket = serverSocket;
         keyPair = new RSA();
         CAPublicKey = keyPair.getPublic();
         // creates root certificate
         CACertificate = Certificates.generateCACertificate(keyPair);
+        System.out.println("LOG: CA Root certificate generated");
+        System.out.println();
     }
 
     public void startServer()throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {

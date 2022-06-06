@@ -9,13 +9,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.SignatureException;
 import java.security.InvalidAlgorithmParameterException;
-<<<<<<< HEAD
-
-=======
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.InvalidAlgorithmParameterException;
->>>>>>> origin/CertValidation
 
 
 
@@ -60,23 +56,18 @@ public class Client {
                 String messageToSend = scanner.nextLine();
                 for (ClientInfo client : clients) {
                     if (!client.getUsername().equals(this.username)) {
-<<<<<<< HEAD
-                        PGPmessages message = PGPmessages.sendMessage(messageToSend,client.getUsername(),this.username,keyPair.getPrivate(),client.getPublicKey());
-                        objOutput.writeObject(message);
-                        objOutput.flush();
-                        System.out.println("Encrypted message sent");
-=======
                         // Only messages Client if public key is trused by CA
                         if (client.isTrusted()) {
                             PGPmessages message = PGPmessages.sendMessage(messageToSend,client.getUsername(),this.username,keyPair.getPrivate(),client.getPublicKey());
                             objOutput.writeObject(message);
                             objOutput.flush();
+                            System.out.println("Encrypted message sent");
                         }
                         else {
-                            System.out.println(client.getUsername()+"'s Public Key is not valid");
+                            System.out.println("LOG: :"+client.getUsername()+"'s Public Key is not valid");
+                            System.out.println();
                         }
                         
->>>>>>> origin/CertValidation
                     }
                 }
             }
@@ -130,7 +121,8 @@ public class Client {
                 System.out.println();
                 break;
             case "class sun.security.rsa.RSAPublicKeyImpl":
-                System.out.println("Certificate Authority Public Key saved");
+                System.out.println("LOG: Certificate Authority Public Key saved");
+                System.out.println();
                 PublicKey k = (PublicKey) message;
                 CAPublicKey = k;
                 break;
@@ -141,12 +133,14 @@ public class Client {
                     // if certificate is validation by CA/Server then the public key can be trusted
                     if (Certificates.validateCertificate(client.getCertificate(), CAPublicKey)){
                         client.trustPublicKey();
-                        System.out.println(client.getUsername()+"\'s Public Key Verified");
+                        System.out.println("LOG: "+client.getUsername()+"\'s Public Key Verified");
                     }
                     else {
-                        System.out.println(client.getUsername()+"\'s Public Key is not valid");
+                        System.out.println("LOG: "+client.getUsername()+"\'s Public Key is not valid");
+                        System.out.println();
                     }
                 }
+                System.out.println();
                 System.out.println("Clients list recieved with size: "+ Client.clients.size());
                 break;
             case "class PGPmessages":

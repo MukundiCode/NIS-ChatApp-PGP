@@ -26,6 +26,8 @@ public class ClientInfo implements Serializable {
         this.trust = false;
         // creates client certificate
         this.certificate = Certificates.generateClientCertificate(KU, username);
+        System.out.println("LOG: "+username+" certificate generated");
+        System.out.println();
     }
 
     /**
