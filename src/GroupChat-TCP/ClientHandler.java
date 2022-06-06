@@ -17,7 +17,11 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.util.Iterator;
-
+import java.security.cert.CertificateException;
+import org.bouncycastle.operator.OperatorCreationException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.io.IOException;
 
 /**
  * When a client connects the server spawns a thread to handle the client.
@@ -64,7 +68,7 @@ public class ClientHandler implements Runnable {
                 // Read what the client sent and then send it to every other client.
                 Object in = objInput.readObject();
                 handleMessage(in);
-            } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | ClassNotFoundException e) {
+            } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | ClassNotFoundException | CertificateException | OperatorCreationException | KeyStoreException e) {
                 // Close everything gracefully.
                 try {
                     closeEverything(socket, objInput, objOut);
@@ -111,7 +115,7 @@ public class ClientHandler implements Runnable {
 
 
     //Take a message, and if it is a message to broadcast, broadcast, but if it is a key, store the key
-    public void handleMessage(Object message) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
+    public void handleMessage(Object message) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, CertificateException, OperatorCreationException, KeyStoreException{
         //get message type
         switch (message.getClass().toString()){
             case "class sun.security.rsa.RSAPublicKeyImpl":
@@ -137,7 +141,7 @@ public class ClientHandler implements Runnable {
                 sendMessage((PGPmessages)message);
                 break;
             case "class [B":
-                System.out.println("Dcrypting bytes");
+                System.out.println("Decrypting bytes");
                 byte [] msgBytes = (byte[]) message;
                 break;
         }
@@ -148,6 +152,10 @@ public class ClientHandler implements Runnable {
         if (Server.clients.size() > 2){
         for (int i = 0;i < clientHandlers.size();i++) {
             try {
+                    // send CA public key to client
+                    clientHandlers.get(i).objOut.writeObject(Server.CAPublicKey);
+                    clientHandlers.get(i).objOut.flush();
+                
                     clientHandlers.get(i).objOut.writeObject(Server.clients);
                     clientHandlers.get(i).objOut.flush();
                 } catch (IOException e) {

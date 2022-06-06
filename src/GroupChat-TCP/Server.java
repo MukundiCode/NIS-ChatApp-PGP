@@ -8,17 +8,33 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.util.ArrayList;
-
+import org.bouncycastle.operator.OperatorCreationException;
+import java.security.KeyStoreException;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 public class Server {
 
     private final ServerSocket serverSocket;
     public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
+<<<<<<< HEAD
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_YELLOW = "\u001B[33m";
 
     public Server(ServerSocket serverSocket) {
+=======
+    private static RSA keyPair;
+    private static X509Certificate CACertificate;
+    public static PublicKey CAPublicKey;
+
+    public Server(ServerSocket serverSocket) throws CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException, IOException {
+>>>>>>> origin/CertValidation
         this.serverSocket = serverSocket;
+        keyPair = new RSA();
+        CAPublicKey = keyPair.getPublic();
+        // creates root certificate
+        CACertificate = Certificates.generateCACertificate(keyPair);
     }
 
     public void startServer()throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
@@ -49,8 +65,8 @@ public class Server {
     }
 
     // Create the server socket and start the sever, accepting any requests from clients and parsing that into the clientHandler
-    public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(100);
+    public static void main(String[] args) throws IOException, CertificateException, OperatorCreationException, NoSuchAlgorithmException, KeyStoreException {
+        ServerSocket serverSocket = new ServerSocket(1234);
         Server server = new Server(serverSocket);
         try {
             server.startServer();

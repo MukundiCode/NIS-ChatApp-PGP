@@ -9,7 +9,13 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.SignatureException;
 import java.security.InvalidAlgorithmParameterException;
+<<<<<<< HEAD
 
+=======
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.security.InvalidAlgorithmParameterException;
+>>>>>>> origin/CertValidation
 
 
 
@@ -26,6 +32,9 @@ public class Client {
     private String username;
     public RSA keyPair;
     public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
+    private X509Certificate certificate;
+    private PublicKey CAPublicKey;
+
 
     public Client(Socket socket, String username) {
         try {
@@ -51,10 +60,23 @@ public class Client {
                 String messageToSend = scanner.nextLine();
                 for (ClientInfo client : clients) {
                     if (!client.getUsername().equals(this.username)) {
+<<<<<<< HEAD
                         PGPmessages message = PGPmessages.sendMessage(messageToSend,client.getUsername(),this.username,keyPair.getPrivate(),client.getPublicKey());
                         objOutput.writeObject(message);
                         objOutput.flush();
                         System.out.println("Encrypted message sent");
+=======
+                        // Only messages Client if public key is trused by CA
+                        if (client.isTrusted()) {
+                            PGPmessages message = PGPmessages.sendMessage(messageToSend,client.getUsername(),this.username,keyPair.getPrivate(),client.getPublicKey());
+                            objOutput.writeObject(message);
+                            objOutput.flush();
+                        }
+                        else {
+                            System.out.println(client.getUsername()+"'s Public Key is not valid");
+                        }
+                        
+>>>>>>> origin/CertValidation
                     }
                 }
             }
@@ -107,16 +129,35 @@ public class Client {
                 System.out.println(msgFromGroupChat);
                 System.out.println();
                 break;
+            case "class sun.security.rsa.RSAPublicKeyImpl":
+                System.out.println("Certificate Authority Public Key saved");
+                PublicKey k = (PublicKey) message;
+                CAPublicKey = k;
+                break;
             case "class java.util.ArrayList":
                 Client.clients = (ArrayList<ClientInfo>) message;
+                // Validates all Clent's public key with CA
+                for (ClientInfo client : clients) {
+                    // if certificate is validation by CA/Server then the public key can be trusted
+                    if (Certificates.validateCertificate(client.getCertificate(), CAPublicKey)){
+                        client.trustPublicKey();
+                        System.out.println(client.getUsername()+"\'s Public Key Verified");
+                    }
+                    else {
+                        System.out.println(client.getUsername()+"\'s Public Key is not valid");
+                    }
+                }
                 System.out.println("Clients list recieved with size: "+ Client.clients.size());
                 break;
             case "class PGPmessages":
                 PGPmessages m = (PGPmessages) message;
                 for (ClientInfo client : clients) {
                     if (client.getUsername() == m.getSenderUsername()){
-                        String decryptedMessage = PGPmessages.receiveMessage(m,keyPair.getPrivate(),client.getPublicKey());
-                        System.out.println(client.getUsername() +": " +decryptedMessage);
+                        // Only receive messages from Clients whose public key is trused by CA
+                        if (client.isTrusted()) {
+                            String decryptedMessage = PGPmessages.receiveMessage(m,keyPair.getPrivate(),client.getPublicKey());
+                            System.out.println(client.getUsername() +": " +decryptedMessage);
+                        }
                     }
                 }
                 break;
@@ -155,7 +196,7 @@ public class Client {
         System.out.print("Enter your username for the group chat: ");
         String username = scanner.nextLine();
         // Create a socket to connect to the server.
-        Socket socket = new Socket("localhost", 100);
+        Socket socket = new Socket("localhost", 1234);
 
         // Pass the socket and give the client a username.
         Client client = new Client(socket, username);

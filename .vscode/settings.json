@@ -1,0 +1,12 @@
+{
+    "java.project.referencedLibraries": {
+        "include": [
+            "lib/**/*.jar",
+            "src/GroupChat-TCP/2.jar",
+            "src/GroupChat-TCP/3.jar"
+        ],
+        "exclude": [
+            "src/GroupChat-TCP/1.jar"
+        ]
+    }
+}
