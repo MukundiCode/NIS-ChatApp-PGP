@@ -44,6 +44,7 @@ public class ClientHandler implements Runnable {
             this.objInput = new ObjectInputStream(socket.getInputStream());
             // When a client connects their username is sent.
             this.clientUsername = (String) objInput.readObject();
+            System.out.println("LOG: Client "+ this.clientUsername + " has connected");
             // Add the new client handler to the array so they can receive messages from others.
             clientHandlers.add(this);
             broadcastMessage("SERVER: " + clientUsername + " has entered the chat!");

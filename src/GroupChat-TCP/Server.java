@@ -14,7 +14,8 @@ public class Server {
 
     private final ServerSocket serverSocket;
     public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
-
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
 
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;

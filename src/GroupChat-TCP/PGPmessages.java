@@ -37,11 +37,17 @@ public class PGPmessages implements Serializable {
     public static PGPmessages sendMessage(String plainMessage,String receipientUserName,String senderUsername, PrivateKey senderPrivate, PublicKey recipientPublicKey) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, SignatureException, IOException, InvalidAlgorithmParameterException {
         byte[] messageData = plainMessage.getBytes("UTF-8");//getting the bytes of the plainMessage
         byte[] shaSignature = Encryption.signedData(messageData, senderPrivate);//generating the SHA256withRSA signed hash
+        System.out.println("LOG: SHA256 signed hash: "+ new String(shaSignature));
+        System.out.println();
         //writing the message and signed hash byte arrays to a shared byte array
         byte[] messageConcat = new byte[messageData.length+shaSignature.length];//creating new byte array of the combined lengths of the previous arrays
         System.arraycopy(messageData, 0, messageConcat, 0, messageData.length);
         System.arraycopy(shaSignature, 0, messageConcat, messageData.length, shaSignature.length);
+        System.out.println("LOG: Concatenated message and signed has: "+ new String(messageConcat));
+        System.out.println();
         byte [] compressedData = Compression.compress(messageConcat);//calling compression methods need to add methods to check for compression
+        System.out.println("LOG: compressed message with signed hash: "+ new String(compressedData) );
+        System.out.println();
         SecretKey secretKey = Encryption.secretKeyGeneration();//generating the secret shortlived key //MOVED
         //LINES 49-51 can be taken out once jono is done logging
         // System.out.println("ORIGINAL SECRET KEY");
@@ -50,11 +56,15 @@ public class PGPmessages implements Serializable {
 		byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
         byte [] encryptedMessage = Encryption.symmetricEncrypt(secretKey, compressedData, ivParameterSpec);//object attribute 1
+        System.out.println("LOG: Compressed message encrypted with secret key: "+ new String(encryptedMessage));
+        System.out.println();
         //lines 56-59 can be removed when logging is done
         // System.out.println("ENCRYPTED MESSAGE CONTENT");
         // System.out.println(Arrays.toString(encryptedMessage));
         // System.out.println(new String(encryptedMessage));
         byte [] encryptedSessionKey = Encryption.encryptSessionKey(recipientPublicKey, secretKey); //encrypting the session key //MOVE
+        System.out.println("LOG: Session key encrypted with public key: "+ new String(encryptedSessionKey));
+        System.out.println();
         PGPmessages pgpTransmission = new PGPmessages(encryptedMessage, encryptedSessionKey,receipientUserName,senderUsername);//calling the constructor to generate the transmission
         //lines 62-64 can be removed
         //System.out.println(Arrays.toString(pgpTransmission.messageComponent));
@@ -65,16 +75,26 @@ public class PGPmessages implements Serializable {
     public static String receiveMessage(PGPmessages receivedMessage, PrivateKey recipientPrivateKey, PublicKey senderPublicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, IOException, SignatureException {
         //seperating the pgp transmission object into the message and key components
         byte[] encryptedmessageComponent = receivedMessage.messageComponent;
+        System.out.println("LOG: Encrypted message components: "+ new String(encryptedmessageComponent));
+        System.out.println();
         byte[] keyComponent = receivedMessage.keyComponent;
+        System.out.println("LOG: Encrypted Session key component: "+ new String(keyComponent));
+        System.out.println();
         byte[] decryptedSessionKeyByte = Encryption.asymmetricDecrypt(keyComponent, recipientPrivateKey);//decrypting the session key using asymmetric decryption with the recipients private key as algorithm input
         SecretKey secretKeyRestructured = new SecretKeySpec(decryptedSessionKeyByte, 0, decryptedSessionKeyByte.length, "AES");//reconstruvted session key
+        System.out.println("LOG: Decrypted session key: " + new String(decryptedSessionKeyByte));
+        System.out.println();
         //Lines 74-76 can be removed after logging
         // System.out.println("RECONSTRUCTED SECRET KEY");
         // System.out.println(Arrays.toString(secretKeyRestructured.getEncoded()));
         byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);//iv for aes algorithm
         byte[] decryptedCompressedMessageComponent = Encryption.symmetricDecrypt(secretKeyRestructured, encryptedmessageComponent, ivParameterSpec);//decrypted compressed mesaage bytes
+        System.out.println("LOG: Decrypted and compressed message: "+ new String(decryptedCompressedMessageComponent));
+        System.out.println();
         byte[] decompressedMessageComponent = Compression.decompress(decryptedCompressedMessageComponent);//decompressed message bytes
+        System.out.println("LOG: Decompressed message: "+ new String(decompressedMessageComponent));
+        System.out.println();
         //lines 81-83 remove after logging
         // System.out.println("RECEIVED SIDE BYTE ARRAY");
         // System.out.println(Arrays.toString(decompressedMessageComponent));
@@ -86,6 +106,8 @@ public class PGPmessages implements Serializable {
         byte[] messageByteArray = Arrays.copyOfRange(decompressedMessageComponent, 0, messageEndIndex);
         byte[] signedHash = Arrays.copyOfRange(decompressedMessageComponent, messageEndIndex, byteArrayLength);
         //Can remove 91-94
+        System.out.println("LOG: Signed Hash: "+ new String(signedHash));
+        System.out.println();
         // String messageString = new String(messageByteArray);
         // System.out.println("The message part is HERE");
         // System.out.println(messageString);
@@ -95,6 +117,8 @@ public class PGPmessages implements Serializable {
         authCheck.update(messageByteArray);
         //returns message if the signatures match
         if(authCheck.verify(signedHash)){
+            System.out.println("LOG: Comparing message hash with signed hash: TRUE");
+            System.out.println();
             return new String(messageByteArray);
             // System.out.println(new String(messageByteArray));
         }else{

@@ -1,17 +1,14 @@
 import java.io.*;
 import java.net.Socket;
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.ArrayList;
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.SignatureException;
 import java.security.InvalidAlgorithmParameterException;
-import java.security.PublicKey;
 
 
 
@@ -57,6 +54,7 @@ public class Client {
                         PGPmessages message = PGPmessages.sendMessage(messageToSend,client.getUsername(),this.username,keyPair.getPrivate(),client.getPublicKey());
                         objOutput.writeObject(message);
                         objOutput.flush();
+                        System.out.println("Encrypted message sent");
                     }
                 }
             }
