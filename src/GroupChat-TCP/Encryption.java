@@ -77,7 +77,7 @@ public class Encryption {
      */
     public static SecretKey secretKeyGeneration() throws NoSuchAlgorithmException{
         KeyGenerator secretKeyGen = KeyGenerator.getInstance("AES");
-        secretKeyGen.init(128);
+        secretKeyGen.init(256);
         SecretKey secretKey = secretKeyGen.generateKey();
         return secretKey;
     }
