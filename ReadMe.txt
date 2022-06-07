@@ -16,6 +16,8 @@ java -cp .;1.jar;2.jar;3.jar;4.jar;5.jar;6.jar Server
 To run the Client on Windows use command:
 java -cp .;1.jar;2.jar;3.jar;4.jar;5.jar;6.jar Client
 
+Run one server instance and 3 client instances for the chat application to work.
+
 To test the Certifcate methods compile and run the TestCertificate class:
 javac -cp .;1.jar;2.jar;3.jar;4.jar;5.jar;6.jar *.java
 java -cp .;1.jar;2.jar;3.jar;4.jar;5.jar;6.jar TestCertificate
