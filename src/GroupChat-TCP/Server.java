@@ -3,7 +3,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -18,8 +17,6 @@ public class Server {
 
     private final ServerSocket serverSocket;
     public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
-    public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_YELLOW = "\u001B[33m";
     private static RSA keyPair;
     private static X509Certificate CACertificate;
     public static PublicKey CAPublicKey;
@@ -37,13 +34,11 @@ public class Server {
     public void startServer()throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         try {
             // Listen for connections, from clients, on port 100.
+            System.out.println("Server started. Waiting for 3 clients to join...");
             while (!serverSocket.isClosed()) {
-                // Will be closed in the Client Handler.
                 Socket socket = serverSocket.accept();
-                System.out.println("A new client has connected!");
                 ClientHandler clientHandler = new ClientHandler(socket);
                 Thread thread = new Thread(clientHandler);
-                // The start method begins the execution of a thread of type ClientHandler which deals with BufferedReader and BufferedWeriter
                 thread.start();
             }
         } catch (IOException e) {
@@ -69,7 +64,6 @@ public class Server {
             server.startServer();
         } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
                 | BadPaddingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

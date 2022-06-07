@@ -98,10 +98,4 @@ public class Encryption {
         byte[] signatureBytes = sig.sign();
         return signatureBytes;
     }
-
-    //took out main method
-    //made my own methods for signatures and comaprission
-    //added secret key gen here
-
-
 }

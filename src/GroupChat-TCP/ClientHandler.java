@@ -7,34 +7,27 @@
 import java.io.*;
 import java.net.Socket;
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.util.Iterator;
 import java.security.cert.CertificateException;
 import org.bouncycastle.operator.OperatorCreationException;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.io.IOException;
 
 /**
  * When a client connects the server spawns a thread to handle the client.
  * This way the server can handle multiple clients at the same time.
  */
-
-
 public class ClientHandler implements Runnable {
 
     // Array list of clientHandler objects ran as threads from Server
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
 
-    // Socket for a connection, buffer reader and writer for receiving and sending data respectively.
     private Socket socket;
     private ObjectOutputStream objOut;
     private ObjectInputStream objInput;
@@ -69,12 +62,10 @@ public class ClientHandler implements Runnable {
                 Object in = objInput.readObject();
                 handleMessage(in);
             } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | ClassNotFoundException | CertificateException | OperatorCreationException | KeyStoreException e) {
-                // Close everything gracefully.
                 try {
                     closeEverything(socket, objInput, objOut);
                 } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
                         | IllegalBlockSizeException | BadPaddingException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
                 break;
@@ -89,7 +80,6 @@ public class ClientHandler implements Runnable {
         for (ClientHandler clientHandler : clientHandlers) {
             try {
                 if (!clientHandler.clientUsername.equals(clientUsername)) {
-                    // We want to encrypt with private and publics here.
                     clientHandler.objOut.writeObject(messageToSend);
                     clientHandler.objOut.flush();
                 }
@@ -99,11 +89,19 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * 
+     * @param message Encrypted message of type PGPmessages, server can not open this message, passes it to the reciepient
+     * @throws InvalidKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
     public void sendMessage(PGPmessages message) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         for (ClientHandler clientHandler : clientHandlers) {
             try {
                 if (clientHandler.clientUsername.equals(message.getReceipientUsername())) {
-                    // We want to encrypt with private and publics here.
                     clientHandler.objOut.writeObject(message);
                     clientHandler.objOut.flush();
                 }
@@ -113,8 +111,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
-
-    //Take a message, and if it is a message to broadcast, broadcast, but if it is a key, store the key
+    /**
+     * Handle message using the type of the object sent
+     */
     public void handleMessage(Object message) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, CertificateException, OperatorCreationException, KeyStoreException{
         //get message type
         switch (message.getClass().toString()){
@@ -128,14 +127,13 @@ public class ClientHandler implements Runnable {
             case "class java.lang.String":
                 String msg = (String) message;
                 String command = (String) msg.substring(0, 4);
-
                 switch(command){
                     case "SEND":
                         broadcastMessage(clientUsername +": " +msg.substring(6));
                         break;
                     default:
                         break;
-            }
+                }
                 break;
             case "class PGPmessages":
                 sendMessage((PGPmessages)message);
@@ -145,7 +143,6 @@ public class ClientHandler implements Runnable {
                 byte [] msgBytes = (byte[]) message;
                 break;
         }
-        //get message command  
     }
 
     public synchronized void sendClientInfo()throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{

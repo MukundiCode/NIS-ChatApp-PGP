@@ -11,7 +11,6 @@ import java.security.SignatureException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.security.InvalidAlgorithmParameterException;
 
 
 
@@ -28,7 +27,6 @@ public class Client {
     private String username;
     public RSA keyPair;
     public static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
-    private X509Certificate certificate;
     private PublicKey CAPublicKey;
 
 
@@ -40,7 +38,6 @@ public class Client {
             this.objInput = new ObjectInputStream(socket.getInputStream());
             this.keyPair = new RSA();
         } catch (IOException e) {
-            // Gracefully close everything.
             closeEverything(socket, objInput, objOutput);
         }
     }
@@ -48,7 +45,6 @@ public class Client {
     // Sending a message isn't blocking and can be done without spawning a thread, unlike waiting for a message.
     public void sendMessage()throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,SignatureException,InvalidAlgorithmParameterException {
         try {
-            // Initially send the username of the client.
             // Create a scanner for user input.
             Scanner scanner = new Scanner(System.in);
             // While there is still a connection with the server, continue to scan the terminal and then send the message.
@@ -61,7 +57,7 @@ public class Client {
                             PGPmessages message = PGPmessages.sendMessage(messageToSend,client.getUsername(),this.username,keyPair.getPrivate(),client.getPublicKey());
                             objOutput.writeObject(message);
                             objOutput.flush();
-                            System.out.println("Encrypted message sent");
+                            System.out.println("LOG: Encrypted message sent");
                         }
                         else {
                             System.out.println("LOG: :"+client.getUsername()+"'s Public Key is not valid");
@@ -72,7 +68,6 @@ public class Client {
                 }
             }
         } catch (IOException e) {
-            // Gracefully close everything.
             closeEverything(socket, objInput, objOutput);
         }
     }
@@ -96,15 +91,13 @@ public class Client {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String msgFromGroupChat;
                 // While there is still a connection with the server, continue to listen for messages on a separate thread.
                 while (socket.isConnected()) {
                     try {
-                        // Get the messages sent from other users and print it to the console.
+                        // Get the messages sent from other user and handle accordingly
                         Object in = objInput.readObject();
                         handleMessage(in);
                     } catch (IOException |NoSuchAlgorithmException |NoSuchPaddingException |InvalidKeyException |IllegalBlockSizeException |BadPaddingException |SignatureException |InvalidAlgorithmParameterException| ClassNotFoundException e) {
-                        // Close everything gracefully.
                         closeEverything(socket, objInput, objOutput);
                     }
                 }
@@ -113,9 +106,9 @@ public class Client {
     }
 
     public void handleMessage(Object message)throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,SignatureException,InvalidAlgorithmParameterException,IOException {
-        //get message type
+        //get object type of message sent
         switch (message.getClass().toString()){
-            case "class java.lang.String":
+            case "class java.lang.String": 
                 String msgFromGroupChat = (String) message;
                 System.out.println(msgFromGroupChat);
                 System.out.println();
@@ -142,6 +135,8 @@ public class Client {
                 }
                 System.out.println();
                 System.out.println("Clients list recieved with size: "+ Client.clients.size());
+                System.out.println("You can now communicate with the rest of the group");
+                System.out.println();
                 break;
             case "class PGPmessages":
                 PGPmessages m = (PGPmessages) message;
@@ -156,17 +151,10 @@ public class Client {
                 }
                 break;
         }
-        //get message command  
     }
 
     // Helper method to close everything so you don't have to repeat yourself.
     public void closeEverything(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
-        // Note you only need to close the outer wrapper as the underlying streams are closed when you close the wrapper.
-        // Note you want to close the outermost wrapper so that everything gets flushed.
-        // Note that closing a socket will also close the socket's InputStream and OutputStream.
-        // Closing the input stream closes the socket. You need to use shutdownInput() on socket to just close the input stream.
-        // Closing the socket will also close the socket's input stream and output stream.
-        // Close the socket after closing the streams.
         try {
             if (in != null) {
                 in.close();
@@ -182,16 +170,14 @@ public class Client {
         }
     }
 
-    // Run the program.
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,SignatureException,InvalidAlgorithmParameterException{
 
-        // Get a username for the user and a socket connection.
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter your username for the group chat: ");
+        System.out.println("Enter your username for the group chat: ");
         String username = scanner.nextLine();
+        System.out.println("Waiting for number of clients to reach 3...");
         // Create a socket to connect to the server.
         Socket socket = new Socket("localhost", 1234);
-
         // Pass the socket and give the client a username.
         Client client = new Client(socket, username);
         // Infinite loop to read and send messages.
